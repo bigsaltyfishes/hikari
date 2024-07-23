@@ -1,0 +1,10 @@
+[build]
+target = "x86_64-unknown-none"
+rustflags = [
+    "-Cforce-frame-pointers=yes",
+    "-Csymbol-mangling-version=v0",
+    "-Cforce-unwind-tables",
+]
+
+[unstable]
+build-std = ["core", "alloc"]
