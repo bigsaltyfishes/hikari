@@ -42,15 +42,9 @@ impl Color {
 }
 
 #[allow(unused)]
-pub trait Canvas {
+pub trait SimpleCanvas {
     fn get_pixel(&self, x: u32, y: u32) -> Color;
     fn draw_pixel(&mut self, x: u32, y: u32, color: &Color);
-    fn draw_line(&mut self, x1: u32, y1: u32, x2: u32, y2: u32, color: &Color);
-    fn draw_rect(&mut self, x: u32, y: u32, width: u32, height: u32, color: &Color);
-    fn draw_circle(&mut self, x: u32, y: u32, radius: u32, color: &Color);
-    fn fill_rect(&mut self, x: u32, y: u32, width: u32, height: u32, color: &Color);
-    fn fill_circle(&mut self, x: u32, y: u32, radius: u32, color: &Color);
-    fn move_area(&mut self, x: u32, y: u32, width: u32, height: u32, dx: i32, dy: i32);
     fn move_up(&mut self, dy: u32);
     fn clear(&mut self);
 }

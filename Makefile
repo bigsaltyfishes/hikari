@@ -1,7 +1,7 @@
 # Nuke built-in rules and variables.
 override MAKEFLAGS += -rR
 
-override IMAGE_NAME := libhikari
+override IMAGE_NAME := hikari
 override BUILD_DIR := build
 
 .SHELLFLAGS += -e
@@ -15,22 +15,22 @@ all-hdd: $(BUILD_DIR)/$(IMAGE_NAME).hdd
 .PHONY: run
 run: $(BUILD_DIR)/$(IMAGE_NAME).iso
 	cd $(BUILD_DIR); \
-	qemu-system-x86_64 -accel kvm -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d -serial stdio
+	qemu-system-x86_64 -accel kvm -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d -serial stdio --smp 4
 
 .PHONY: run-uefi
 run-uefi: $(BUILD_DIR)/ovmf $(BUILD_DIR)/$(IMAGE_NAME).iso
 	cd $(BUILD_DIR); \
-	qemu-system-x86_64 -accel kvm -M q35 -m 2G -bios ovmf/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d -serial stdio
+	qemu-system-x86_64 -accel kvm -M q35 -m 2G -bios ovmf/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d -serial stdio --smp 4
 
 .PHONY: run-hdd
 run-hdd: $(BUILD_DIR)/$(IMAGE_NAME).hdd
 	cd $(BUILD_DIR); \
-	qemu-system-x86_64 -accel kvm -M q35 -m 2G -hda $(IMAGE_NAME).hdd -serial stdio
+	qemu-system-x86_64 -accel kvm -M q35 -m 2G -hda $(IMAGE_NAME).hdd -serial stdio --smp 4
 
 .PHONY: run-hdd-uefi
 run-hdd-uefi: $(BUILD_DIR)/ovmf $(IMAGE_NAME).hdd
 	cd $(BUILD_DIR)
-	qemu-system-x86_64 -accel kvm -M q35 -m 2G -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd -serial stdio
+	qemu-system-x86_64 -accel kvm -M q35 -m 2G -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd -serial stdio --smp 4
 
 $(BUILD_DIR)/ovmf:
 	mkdir -p $(BUILD_DIR)/ovmf
@@ -45,8 +45,8 @@ $(BUILD_DIR)/limine/limine:
 
 .PHONY: kernel
 kernel:
-	cargo build --target=x86_64-unknown-none
-	cp -v target/x86_64-unknown-none/debug/libhikari $(BUILD_DIR)/kernel
+	cargo build --target ./x86_64.json
+	cp -v target/x86_64/debug/hikari $(BUILD_DIR)/kernel
 
 $(BUILD_DIR)/$(IMAGE_NAME).iso: $(BUILD_DIR)/limine/limine kernel
 	cd $(BUILD_DIR); \

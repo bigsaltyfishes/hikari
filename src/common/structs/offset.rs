@@ -170,7 +170,6 @@ impl PartialOrd for Offset {
         } else {
             Some(core::cmp::Ordering::Greater)
         }
-
     }
 }
 

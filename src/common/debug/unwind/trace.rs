@@ -1,13 +1,25 @@
 use core::ffi::{c_int, c_void};
+use log::trace;
+#[cfg(feature = "dwarf-unwind")]
+use unwinding::abi::{UnwindContext, UnwindReasonCode, _Unwind_Backtrace, _Unwind_GetGR, _Unwind_GetIP};
 
-use unwinding::abi::{_Unwind_Backtrace, _Unwind_GetGR, _Unwind_GetIP, UnwindContext, UnwindReasonCode};
-
-use crate::{arch, trace};
 use crate::arch::ARCHITECTURE_MAX_DWARF_REGS;
 use crate::common::debug::symbols::KERNEL_SYMBOLS;
 use crate::common::structs::register::Register;
 use crate::kinfo::KERNEL_STACK_TRACE_FRAME_NUM;
+use crate::arch;
 
+#[cfg(not(feature = "dwarf-unwind"))]
+use crate::arch::hal_impl::trace::StackTracer;
+
+pub trait Tracer {
+    /// Create a new stack tracer
+    fn new() -> Self;
+    /// Get the next frame's instruction pointer
+    fn next(&mut self) -> Option<usize>;
+}
+
+#[cfg(feature = "dwarf-unwind")]
 pub fn stack_trace() {
     #[derive(Default)]
     struct Context {
@@ -64,6 +76,21 @@ pub fn stack_trace() {
             trace!("{:4}:<{:#x}> - <{:#} + {:#x}>", i, pc, function_name, offset);
         }).unwrap_or_else(|| {
             trace!("{:4}:<{:#x}> - <? + ?>", i, pc);
+        });
+    }
+}
+
+#[cfg(not(feature = "dwarf-unwind"))]
+pub fn stack_trace() {
+    let mut tracer = StackTracer::new();
+    let mut counter = 0;
+    trace!("STACK TRACE: ");
+    while let Some(ra) = tracer.next() {
+        counter += 1;
+        KERNEL_SYMBOLS.find_symbol(ra).map(|(function_name, offset)| {
+            trace!("{:4}:<{:#x}> - <{:#} + {:#x}>", counter, ra, function_name, offset);
+        }).unwrap_or_else(|| {
+            trace!("{:4}:<{:#x}> - <? + ?>", counter, ra);
         });
     }
 }

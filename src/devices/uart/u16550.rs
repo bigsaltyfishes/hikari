@@ -5,7 +5,7 @@ use spin::Mutex;
 
 use crate::common::debug::logger;
 
-static SERIAL_WRITER: OnceCell<Mutex<SerialPort>> = OnceCell::uninit();
+pub static SERIAL_WRITER: OnceCell<Mutex<SerialPort>> = OnceCell::uninit();
 
 pub struct SerialPort {
     port: uart_16550::SerialPort,
@@ -33,5 +33,4 @@ pub fn module_init() {
     SERIAL_WRITER.init_once(move || {
         Mutex::new(unsafe { SerialPort::init() })
     });
-    logger::add_log_output(SERIAL_WRITER.get().unwrap())
 }
