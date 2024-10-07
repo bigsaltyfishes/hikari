@@ -1,9 +1,16 @@
 use lazy_static::lazy_static;
+use limine::request::{FramebufferRequest, HhdmRequest, KernelAddressRequest, KernelFileRequest, MemoryMapRequest, RequestsEndMarker, RequestsStartMarker, RsdpRequest, SmpRequest, StackSizeRequest};
+use limine::response::{FramebufferResponse, MemoryMapResponse, SmpResponse};
 use limine::BaseRevision;
-use limine::request::{FramebufferRequest, HhdmRequest, KernelAddressRequest, KernelFileRequest, MemoryMapRequest, StackSizeRequest};
-use limine::response::{FramebufferResponse, MemoryMapResponse};
 
 use crate::kinfo::KERNEL_STACK_SIZE;
+
+#[used]
+#[link_section = ".requests_start_marker"]
+static _START_MARKER: RequestsStartMarker = RequestsStartMarker::new();
+#[used]
+#[link_section = ".requests_end_marker"]
+static _END_MARKER: RequestsEndMarker = RequestsEndMarker::new();
 
 macro_rules! limine_request {
     ($($name:ident => $vis:vis($ty:ty, $expr:expr)),* $(,)?) => {
@@ -30,6 +37,8 @@ limine_request!(
     KERNEL_FILE_REQUEST => (KernelFileRequest, KernelFileRequest::new()),
     HHDM_REQUEST => (HhdmRequest, HhdmRequest::new()),
     STACK_SIZE_REQUEST => (StackSizeRequest, StackSizeRequest::new().with_size(KERNEL_STACK_SIZE as u64)),
+    RSDP_REQUEST => (RsdpRequest, RsdpRequest::new()),
+    SMP_REQUEST => (SmpRequest, SmpRequest::new())
 );
 
 lazy_static!(
@@ -44,6 +53,8 @@ pub struct BootInformation {
     pub kernel_file_address: usize,
     pub kernel_file_length: usize,
     pub physics_mem_offset: usize,
+    pub rsdp_address: Option<usize>,
+    pub smp_response: &'static SmpResponse,
 }
 
 impl BootInformation {
@@ -56,6 +67,8 @@ impl BootInformation {
             kernel_file_address: KERNEL_FILE_REQUEST.get_response().unwrap().file().addr() as usize,
             kernel_file_length: KERNEL_FILE_REQUEST.get_response().unwrap().file().size() as usize,
             physics_mem_offset: HHDM_REQUEST.get_response().unwrap().offset() as usize,
+            rsdp_address: RSDP_REQUEST.get_response().map(|rsdp| rsdp.address() as usize),
+            smp_response: SMP_REQUEST.get_response().unwrap(),
         }
     }
 }

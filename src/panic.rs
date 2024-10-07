@@ -1,22 +1,20 @@
-use core::arch::asm;
-
-use lazy_static::lazy_static;
-
-use crate::{error, hcf};
+use crate::boot::BOOTINFO;
+use crate::common::debug::symbols::KERNEL_SYMBOLS;
 use crate::common::debug::unwind;
-use crate::common::structs::cell::Cell;
+use crate::common::debug::unwind::trace;
+use crate::common::structs::interrupt;
+use crate::sys;
+use core::arch::asm;
+use lazy_static::lazy_static;
+use log::error;
 
-lazy_static!(
-    static ref PANIC_COUNTER: Cell<usize> = Cell::new(0);
-);
+static mut PANIC_COUNTER: u32 = 0;
 
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
-    let panic_counter = PANIC_COUNTER.get_mut();
+    sys::interrupt::get_ic().disable_interrupt().unwrap();
+    let panic_counter = unsafe { &mut PANIC_COUNTER };
     *panic_counter += 1;
-    unsafe {
-        asm!("cli");
-    }
 
     error!("⚠!!! KERNEL PANIC !!!⚠");
     if let Some(location) = _info.location() {
@@ -27,9 +25,16 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     if *panic_counter > 1 {
         error!("⚠!!! DOUBLE PANIC !!!⚠");
         error!("This is a double panic, halting the system.");
-        hcf();
+        hlt()
     }
 
-    unwind::stack_trace();
-    hcf();
+    trace::stack_trace();
+    hlt()
+}
+
+fn hlt() -> ! {
+    unsafe {
+        asm!("hlt");
+    }
+    loop {}
 }

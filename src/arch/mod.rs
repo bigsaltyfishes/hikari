@@ -24,8 +24,7 @@ macro_rules! target_feature_required_block {
 
 arch_specific_block!("x86_64", {
     mod x86;
-    
-    pub use x86::INTERRUPT_VECTOR_NUM;
+
     pub use x86::ARCHITECTURE_MAX_DWARF_REGS;
-    pub use x86::Registers;
+    pub use x86::hal_impl;
 });

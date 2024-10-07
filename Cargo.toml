@@ -10,9 +10,9 @@ panic = "abort"
 panic = "abort"
 
 [dependencies]
-limine = "0.2.0"
+limine = "0.3.1"
 crossbeam-utils = { version = "0.8.19", default-features = false }
-buddy_system_allocator = "0.10.0"
+buddy_system_allocator = { git = "https://github.com/bigsaltyfishes/buddy_system_allocator.git" }
 conquer-once = { version = "0.4.0", default-features = false }
 spin = "0.9.8"
 uart_16550 = "0.3.1"
@@ -22,10 +22,21 @@ log = "0.4.22"
 bitflags = "2.6.0"
 rustc-demangle = "0.1.24"
 unifont = "1.1.0"
-circular-buffer = { version = "0.1.7", default-features = false, features = [ "alloc" ] }
+circular-buffer = { version = "0.1.7", default-features = false, features = ["alloc"] }
 paste = "1.0.15"
-unwinding = { version = "0.2.2", default-features = false, features = ["unwinder", "fde-static", "personality", "panic"] }
+unwinding = { version = "0.2.2", default-features = false, features = ["unwinder", "fde-static", "personality", "panic"], optional = true }
+acpi = "5.0.0"
+x2apic = "0.4.3"
+trapframe = "0.9.0" # FSGSBASE Feature required in 0.10.0, require code modification for unsupported hardware
+numeric-enum-macro = "0.2.0"
+raw-cpuid = "11.1.0"
+crossbeam-queue = { version = "0.3.11", default-features = false, features = ["alloc"] }
+id-alloc = "0.1.0"
 
 [dependencies.lazy_static]
 version = "1.0"
 features = ["spin_no_std"]
+
+[features]
+default = []
+dwarf-unwind = ["dep:unwinding"]
